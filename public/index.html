@@ -1,0 +1,3042 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>График Суммированного Учета Рабочего Времени</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/locales/ru.global.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #1e40af;
+            --primary-hover: #1d4ed8;
+            --secondary-color: #64748b;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --danger-color: #dc2626;
+            --background-color: #f8fafc;
+            --surface-color: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --border-radius: 8px;
+            --transition: all 0.2s ease-in-out;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        /* Header */
+        .header {
+            background: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 24px;
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* Main Layout */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 24px;
+            padding: 24px;
+            min-height: calc(100vh - 80px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            height: fit-content;
+            position: sticky;
+            top: 104px;
+        }
+
+        .sidebar-section {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-section:last-child {
+            border-bottom: none;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Content Area */
+        .content {
+            background: var(--surface-color);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .content-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .month-navigation {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .nav-button {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        .nav-button:hover {
+            background: var(--background-color);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .current-month {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .view-tabs {
+            display: flex;
+            background: var(--background-color);
+            border-radius: 6px;
+            padding: 4px;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            border-radius: 4px;
+            background: transparent;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .tab.active {
+            background: var(--surface-color);
+            color: var(--primary-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .content-body {
+            padding: 24px;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            background: var(--surface-color);
+            color: var(--text-primary);
+            transition: var(--transition);
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgb(30 64 175 / 0.1);
+        }
+
+        /* Buttons */
+        .button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .button-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .button-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .button-secondary {
+            background: var(--background-color);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .button-secondary:hover {
+            background: var(--surface-color);
+            border-color: var(--text-secondary);
+            color: var(--text-primary);
+        }
+
+        .button-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .button-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        /* Employee Management */
+        .employee-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .employee-input-row {
+            display: flex;
+            gap: 8px;
+            align-items: end;
+        }
+
+        .employee-input-row .form-input {
+            flex: 1;
+        }
+
+        .employee-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .employee-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: var(--background-color);
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .employee-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .employee-role {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .employee-supervisor {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 9px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .remove-button {
+            background: none;
+            border: none;
+            color: var(--danger-color);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        .remove-button:hover {
+            background: rgb(220 38 38 / 0.1);
+        }
+
+        /* Statistics */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            padding: 12px;
+            background: var(--background-color);
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary-color);
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .employee-stats {
+            margin-top: 16px;
+        }
+
+        .employee-stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .employee-stat:last-child {
+            border-bottom: none;
+        }
+
+        .employee-stat-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .employee-stat-hours {
+            text-align: right;
+        }
+
+        .hours-total {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .hours-details {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Calendar */
+        .calendar-container {
+            min-height: 600px;
+        }
+
+        .fc-event {
+            border: none !important;
+            border-radius: 4px !important;
+            font-size: 11px !important;
+            font-weight: 500 !important;
+        }
+
+        /* Стили для выходных и праздничных дней в календаре */
+        .fc-day-sat .fc-daygrid-day-number,
+        .fc-day-sun .fc-daygrid-day-number {
+            color: #dc2626 !important;
+            font-weight: 700 !important;
+        }
+
+        .fc-day-sat .fc-daygrid-day-frame,
+        .fc-day-sun .fc-daygrid-day-frame {
+            background: rgba(220, 38, 38, 0.05) !important;
+        }
+
+        /* Праздничные дни */
+        .fc-day[data-holiday="true"] .fc-daygrid-day-number {
+            color: #dc2626 !important;
+            font-weight: 700 !important;
+            background: rgba(220, 38, 38, 0.1);
+            border-radius: 4px;
+            padding: 2px 4px;
+        }
+
+        .fc-day[data-holiday="true"] .fc-daygrid-day-frame {
+            background: rgba(220, 38, 38, 0.08) !important;
+        }
+
+        /* Предпраздничные дни */
+        .fc-day[data-pre-holiday="true"] .fc-daygrid-day-number {
+            color: #d97706 !important;
+            font-weight: 700 !important;
+            background: rgba(217, 119, 6, 0.1);
+            border-radius: 4px;
+            padding: 2px 4px;
+        }
+
+        .fc-day[data-pre-holiday="true"] .fc-daygrid-day-frame {
+            background: rgba(217, 119, 6, 0.05) !important;
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: max-content;
+        }
+
+        .schedule-table th {
+            background: var(--background-color);
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .schedule-table th:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 20;
+            background: var(--surface-color);
+            border-right: 2px solid var(--border-color);
+        }
+
+        .schedule-table td {
+            padding: 8px 6px;
+            border: 1px solid var(--border-color);
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .schedule-table td:first-child {
+            position: sticky;
+            left: 0;
+            background: var(--surface-color);
+            border-right: 2px solid var(--border-color);
+            text-align: left;
+            white-space: nowrap;
+            font-weight: 600;
+            min-width: 200px;
+        }
+
+        .schedule-table tr:nth-child(even) {
+            background: rgb(248 250 252 / 0.5);
+        }
+
+        .schedule-table tr:hover {
+            background: var(--background-color);
+        }
+
+        .schedule-table tr:hover td:first-child {
+            background: var(--background-color);
+        }
+
+        /* Shift Colors */
+        .shift-day { background: rgb(16 185 129 / 0.1); border-left: 3px solid #10b981; }
+        .shift-weekend { background: rgb(245 158 11 / 0.1); border-left: 3px solid #f59e0b; }
+        .shift-off { background: rgb(220 38 38 / 0.05); border-left: 3px solid #e5e7eb; }
+        .shift-monday-home { background: rgb(139 92 246 / 0.1); border-left: 3px solid #8b5cf6; }
+        .shift-monday-duty-home { background: rgb(6 182 212 / 0.1); border-left: 3px solid #06b6d4; }
+        .shift-duty-home { background: rgb(168 85 247 / 0.1); border-left: 3px solid #a855f7; }
+        .shift-friday { background: rgb(5 150 105 / 0.1); border-left: 3px solid #059669; }
+        .shift-pre-holiday { background: rgb(251 191 36 / 0.1); border-left: 3px solid #fbbf24; }
+        .shift-supervisor-day { background: rgb(55 65 81 / 0.1); border-left: 3px solid #374151; }
+        .shift-supervisor-friday { background: rgb(55 65 81 / 0.1); border-left: 3px solid #374151; }
+        .shift-supervisor-pre-holiday { background: rgb(251 191 36 / 0.1); border-left: 3px solid #fbbf24; }
+
+        /* Messages */
+        .message {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .message-success {
+            background: rgb(5 150 105 / 0.1);
+            color: var(--success-color);
+            border: 1px solid rgb(5 150 105 / 0.2);
+        }
+
+        .message-error {
+            background: rgb(220 38 38 / 0.1);
+            color: var(--danger-color);
+            border: 1px solid rgb(220 38 38 / 0.2);
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 60px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                gap: 16px;
+                padding: 16px;
+            }
+
+            .sidebar {
+                position: relative;
+                top: auto;
+            }
+
+            .content-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+
+            .month-navigation {
+                justify-content: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 12px 16px;
+            }
+
+            .main-container {
+                padding: 12px;
+                gap: 12px;
+            }
+
+            .sidebar-section,
+            .content-body {
+                padding: 16px;
+            }
+
+            .content-header {
+                padding: 16px;
+            }
+
+            .current-month {
+                font-size: 16px;
+                min-width: auto;
+            }
+
+            .view-tabs {
+                width: 100%;
+            }
+
+            .tab {
+                flex: 1;
+                text-align: center;
+            }
+
+            .schedule-table {
+                font-size: 11px;
+            }
+
+            .schedule-table th,
+            .schedule-table td {
+                padding: 6px 4px;
+            }
+        }
+
+        /* Hidden elements */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Улучшенная статистика - более компактная */
+        .detailed-stats {
+            margin-top: 12px;
+        }
+
+        .stat-grid-detailed {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .stat-mini {
+            padding: 6px;
+            background: var(--background-color);
+            border-radius: 4px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-mini-value {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .stat-mini-label {
+            font-size: 9px;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+
+        /* Улучшенный модуль пожеланий */
+        .preferences-section {
+            margin-top: 16px;
+        }
+
+        .preference-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: var(--background-color);
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .preference-content {
+            flex: 1;
+        }
+
+        .preference-employee {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .preference-dates {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .preference-type {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 500;
+            color: white;
+            display: inline-block;
+        }
+
+        .preference-vacation { background: #ef4444; }
+        .preference-no-weekend { background: #f59e0b; }
+        .preference-remote-work { background: #8b5cf6; }
+
+        .add-preference-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 12px;
+            padding: 12px;
+            background: var(--background-color);
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        .form-row {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        @media (min-width: 1200px) {
+            .form-row {
+                flex-direction: row;
+                align-items: end;
+            }
+        }
+
+        .form-group-inline {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .form-group-inline label {
+            display: block;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 3px;
+        }
+
+        .form-select-sm, .form-input-sm {
+            width: 100%;
+            padding: 5px 7px;
+            font-size: 11px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--surface-color);
+            box-sizing: border-box;
+        }
+
+        .form-select-sm:focus, .form-input-sm:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgb(30 64 175 / 0.1);
+        }
+
+        .date-range-inputs {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .date-range-inputs input {
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .date-separator {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .button-sm {
+            padding: 5px 10px;
+            font-size: 11px;
+            white-space: nowrap;
+            margin-top: auto;
+        }
+
+        /* Компактная легенда цветов */
+        .shift-legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 6px;
+            margin-top: 12px;
+            padding: 12px;
+            background: var(--background-color);
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Вакансии */
+        .vacation-badge {
+            background: #ef4444;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        /* Обновленные стили таблицы */
+        .shift-vacation { 
+            background: rgb(239 68 68 / 0.1); 
+            border-left: 3px solid #ef4444; 
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        /* Управление графиками */
+        .schedule-management {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .saved-schedule-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 8px;
+            background: var(--background-color);
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .saved-schedule-item:hover {
+            background: var(--surface-color);
+            border-color: var(--primary-color);
+        }
+
+        .saved-schedule-info {
+            flex: 1;
+        }
+
+        .saved-schedule-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .saved-schedule-date {
+            color: var(--text-muted);
+            font-size: 10px;
+        }
+
+        /* Version Info */
+        .version-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .version-badge {
+            background: var(--primary-color);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .version-details {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* Changes Section */
+        .changes-list {
+            max-height: 150px;
+            overflow-y: auto;
+            margin-bottom: 12px;
+        }
+
+        .change-item {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .change-item:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 8px rgba(30, 64, 175, 0.1);
+        }
+
+        .change-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .change-icon {
+            font-size: 16px;
+        }
+
+        .change-employee {
+            font-weight: 600;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .change-date {
+            font-size: 12px;
+            color: var(--text-secondary);
+            background: var(--background-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .change-details {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            margin-left: 24px;
+        }
+
+        .change-old {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #fecaca;
+        }
+
+        .change-arrow {
+            color: var(--text-secondary);
+            font-weight: bold;
+        }
+
+        .change-new {
+            background: #f0fdf4;
+            color: #16a34a;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #bbf7d0;
+        }
+
+        .change-reason {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-left: 24px;
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        /* Дополнительные стили по типам изменений */
+        .change-added {
+            border-left: 4px solid #16a34a;
+        }
+
+        .change-removed {
+            border-left: 4px solid #dc2626;
+        }
+
+        .change-modified {
+            border-left: 4px solid #f59e0b;
+        }
+
+        /* Versions Section */
+        .versions-list {
+            max-height: 120px;
+            overflow-y: auto;
+            margin-bottom: 8px;
+            display: none;
+        }
+
+        .version-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 8px;
+            background: var(--background-color);
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 4px;
+            font-size: 11px;
+        }
+
+        .version-item.current {
+            border-color: var(--primary-color);
+            background: rgba(30, 64, 175, 0.05);
+        }
+
+        .version-info {
+            flex: 1;
+        }
+
+        .version-number {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .version-date {
+            color: var(--text-muted);
+            font-size: 10px;
+        }
+
+        .version-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .version-btn {
+            background: none;
+            border: none;
+            padding: 2px 4px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .version-btn.load {
+            color: var(--primary-color);
+        }
+
+        .version-btn.load:hover {
+            background: rgba(30, 64, 175, 0.1);
+        }
+
+        .version-btn.delete {
+            color: var(--danger-color);
+        }
+
+        .version-btn.delete:hover {
+            background: rgba(220, 38, 38, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo">📅 График СУРВ</a>
+            <div class="header-actions">
+                <button class="button button-primary" id="generateBtn">
+                    ⚡ Сгенерировать график
+                </button>
+                <button class="button button-secondary" id="regenerateBtn" style="display: none;">
+                    🔄 Перегенерировать
+                </button>
+                <button class="button button-success hidden" id="downloadBtn">
+                    📥 Скачать Excel
+                </button>
+                <button class="button button-secondary" id="logoutBtn" style="margin-left: 16px;">
+                    🚪 Выйти
+                </button>
+            </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <!-- Параметры генерации -->
+            <div class="sidebar-section">
+                <h3 class="section-title">⚙️ Параметры</h3>
+                <div class="form-group">
+                    <label class="form-label" for="year">Год</label>
+                    <select class="form-select" id="year">
+                        <option value="2025" selected>2025</option>
+                        <option value="2024">2024</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="month">Месяц</label>
+                    <select class="form-select" id="month">
+                        <option value="1">Январь</option>
+                        <option value="2">Февраль</option>
+                        <option value="3">Март</option>
+                        <option value="4">Апрель</option>
+                        <option value="5">Май</option>
+                        <option value="6" selected>Июнь</option>
+                        <option value="7">Июль</option>
+                        <option value="8">Август</option>
+                        <option value="9">Сентябрь</option>
+                        <option value="10">Октябрь</option>
+                        <option value="11">Ноябрь</option>
+                        <option value="12">Декабрь</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Управление сотрудниками -->
+            <div class="sidebar-section">
+                <h3 class="section-title">👥 Сотрудники</h3>
+                <div class="employee-section">
+                    <div class="employee-input-row">
+                        <input type="text" class="form-input" id="newEmployeeName" placeholder="Имя Фамилия">
+                        <button class="button button-secondary button-sm" id="addEmployeeBtn">+</button>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 12px;">
+                        <label class="form-label" for="supervisorSelect">Руководитель</label>
+                        <select class="form-select" id="supervisorSelect">
+                            <option value="">Выберите руководителя</option>
+                        </select>
+                    </div>
+                    
+                    <div class="employee-list" id="employeeList">
+                        <!-- Список сотрудников будет добавлен динамически -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Сохранение и загрузка графиков -->
+            <div class="sidebar-section">
+                <h3 class="section-title">💾 Управление графиками</h3>
+                <div class="schedule-management">
+                    <!-- Информация о версии -->
+                    <div id="versionInfo" class="version-info" style="display: none;">
+                        <div class="version-badge">
+                            <span id="currentVersion">v1</span>
+                        </div>
+                        <div class="version-details" id="versionDetails">
+                            <!-- Детали версии -->
+                        </div>
+                    </div>
+                    
+                    <!-- Изменения при перегенерации -->
+                    <div id="changesSection" style="display: none;">
+                        <h4 style="margin: 12px 0 8px 0; font-size: 14px; color: var(--primary-color);">📝 Изменения:</h4>
+                        <div id="changesList" class="changes-list">
+                            <!-- Список изменений -->
+                        </div>
+                    </div>
+                    
+                    <!-- Управление версиями -->
+                    <div id="versionsSection" style="display: none;">
+                        <h4 style="margin: 12px 0 8px 0; font-size: 14px; color: var(--primary-color);">📚 Версии графика:</h4>
+                        <div id="versionsList" class="versions-list">
+                            <!-- Список версий -->
+                        </div>
+                        <button class="button button-secondary button-sm" id="showVersionsBtn" style="width: 100%; margin-top: 8px;" onclick="toggleVersionsList()">
+                            📚 Управление версиями
+                        </button>
+                    </div>
+                    
+                    <button class="button button-secondary button-sm" id="loadScheduleBtn" style="width: 100%; margin-bottom: 8px;">
+                        📂 Загрузить сохраненный график
+                    </button>
+                    
+                    <button class="button button-secondary button-sm" id="deleteMonthBtn" style="width: 100%; margin-bottom: 8px; color: var(--danger-color); border-color: var(--danger-color);">
+                        🗑️ Удалить весь месячный график
+                    </button>
+                    
+                    <div id="savedSchedulesList" style="max-height: 120px; overflow-y: auto; margin-top: 8px;">
+                        <!-- Список сохраненных графиков -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Пожелания сотрудников -->
+            <div class="sidebar-section">
+                <h3 class="section-title">📋 Пожелания сотрудников</h3>
+                <div class="preferences-section">
+                    <div id="preferencesList">
+                        <!-- Список пожеланий будет добавлен динамически -->
+                    </div>
+                    
+                    <div class="add-preference-form">
+                        <div class="form-row">
+                            <div class="form-group-inline">
+                                <label for="prefEmployee">Сотрудник</label>
+                                <select class="form-select-sm" id="prefEmployee">
+                                    <option value="">Выберите сотрудника</option>
+                                </select>
+                            </div>
+                            <div class="form-group-inline">
+                                <label for="prefType">Тип пожелания</label>
+                                <select class="form-select-sm" id="prefType">
+                                    <option value="vacation">Отпуск</option>
+                                    <option value="no_weekend">Не работать в выходные</option>
+                                    <option value="remote_work">Удаленная работа</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group-inline">
+                                <label>Период</label>
+                                <div class="date-range-inputs">
+                                    <input type="date" class="form-input-sm" id="prefStartDate">
+                                    <span class="date-separator">—</span>
+                                    <input type="date" class="form-input-sm" id="prefEndDate">
+                                </div>
+                            </div>
+                            <button class="button button-primary button-sm" id="addPreferenceBtn">
+                                ✓ Добавить
+                            </button>
+                        </div>
+                        
+                        <div class="form-group-inline">
+                            <label for="prefReason">Причина (необязательно)</label>
+                            <input type="text" class="form-input-sm" id="prefReason" placeholder="Укажите причину...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Статистика -->
+            <div class="sidebar-section hidden" id="statisticsSection">
+                <h3 class="section-title">📊 Статистика</h3>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="targetHours">-</div>
+                        <div class="stat-label">Норма часов</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalEmployees">-</div>
+                        <div class="stat-label">Сотрудников</div>
+                    </div>
+                </div>
+                
+                <div class="employee-stats" id="employeeStats">
+                    <!-- Статистика по сотрудникам -->
+                </div>
+
+                <!-- Легенда цветов смен -->
+                <div class="shift-legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #10b981;"></div>
+                        <span>Дневная смена</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #8b5cf6;"></div>
+                        <span>Пн из дома</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #06b6d4;"></div>
+                        <span>Пн дежурство</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #a855f7;"></div>
+                        <span>Дежурство</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #f59e0b;"></div>
+                        <span>Выходные</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #059669;"></div>
+                        <span>Пятница</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ef4444;"></div>
+                        <span>Отпуск</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #374151;"></div>
+                        <span>Руководитель</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="content">
+            <div class="content-header">
+                <div class="month-navigation">
+                    <button class="nav-button" onclick="changeMonth(-1)">‹</button>
+                    <span class="current-month" id="currentMonth">Июнь 2025</span>
+                    <button class="nav-button" onclick="changeMonth(1)">›</button>
+                </div>
+                <div class="view-tabs">
+                    <button class="tab active" id="calendarTab" onclick="showView('calendar')">📅 Календарь</button>
+                    <button class="tab" id="tableTab" onclick="showView('table')">📋 Таблица</button>
+                </div>
+            </div>
+
+            <div class="content-body">
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Генерируем график рабочего времени...</p>
+                </div>
+
+                <div id="messages"></div>
+
+                <div class="calendar-container hidden" id="calendarContainer">
+                    <div id="calendar"></div>
+                </div>
+
+                <div class="table-container hidden" id="tableContainer">
+                    <div id="scheduleTable"></div>
+                </div>
+
+                <div id="welcomeMessage" class="text-center" style="padding: 60px; color: var(--text-muted);">
+                    <h2 style="margin-bottom: 12px; color: var(--text-secondary);">🎯 Система СУРВ v2.0</h2>
+                    <p style="margin-bottom: 20px;">Генерация справедливого графика с учетом пожеланий сотрудников</p>
+                    
+                    <div style="text-align: left; max-width: 600px; margin: 0 auto; background: var(--background-color); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <h3 style="margin-bottom: 12px; color: var(--primary-color);">✨ Новые возможности:</h3>
+                        <ul style="margin-bottom: 16px; line-height: 1.8;">
+                            <li><strong>Справедливое распределение</strong> - алгоритм учитывает баланс смен между сотрудниками</li>
+                            <li><strong>Пожелания сотрудников</strong> - отпуска, избегание выходных, предпочтение удаленки</li>
+                            <li><strong>Детальная статистика</strong> - количество смен каждого типа, максимум дней подряд</li>
+                            <li><strong>Цветовая кодировка</strong> - в Excel файле с легендой типов смен</li>
+                            <li><strong>Демо пожелания</strong> - автоматически добавляются для показа возможностей</li>
+                        </ul>
+                        
+                        <h3 style="margin-bottom: 12px; color: var(--primary-color);">✅ Быстрый старт:</h3>
+                        <ol style="line-height: 1.8;">
+                            <li>Настройте список сотрудников (8 человек минимум)</li>
+                            <li>Добавьте пожелания сотрудников при необходимости</li>
+                            <li>Выберите месяц и нажмите "Сгенерировать график"</li>
+                            <li>Просмотрите результат и скачайте Excel с цветовой кодировкой</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // === СИСТЕМА АВТОРИЗАЦИИ ===
+        
+        // Проверка авторизации при загрузке страницы
+        document.addEventListener('DOMContentLoaded', async function() {
+            await checkAuthStatus();
+            initializeApp();
+        });
+
+        // Проверка статуса авторизации
+        async function checkAuthStatus() {
+            try {
+                const response = await fetch('/api/auth-status');
+                const result = await response.json();
+                
+                if (!result.authenticated) {
+                    // Не авторизован - перенаправляем на страницу логина
+                    window.location.href = '/login.html';
+                    return;
+                }
+                
+                // Авторизован - добавляем обработчик кнопки выхода
+                document.getElementById('logoutBtn').addEventListener('click', logout);
+                
+            } catch (error) {
+                console.error('Ошибка проверки авторизации:', error);
+                // В случае ошибки тоже перенаправляем на логин
+                window.location.href = '/login.html';
+            }
+        }
+
+        // Функция выхода из системы
+        async function logout() {
+            try {
+                const response = await fetch('/api/logout', {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Перенаправляем на страницу логина
+                    window.location.href = '/login.html';
+                } else {
+                    showMessage('Ошибка при выходе из системы', 'error');
+                }
+            } catch (error) {
+                console.error('Ошибка выхода:', error);
+                // В любом случае перенаправляем на логин
+                window.location.href = '/login.html';
+            }
+        }
+
+        // === ОСНОВНОЕ ПРИЛОЖЕНИЕ ===
+        
+        // Глобальные переменные
+        let employees = [];
+        let employeeDetails = []; // Подробная информация о сотрудниках
+        let supervisorName = null;
+        let currentData = null;
+        let employeePreferences = new Map();
+        let calendar = null; // Объект календаря FullCalendar
+
+        const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+                           'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+
+        // Инициализация приложения после проверки авторизации
+        function initializeApp() {
+            document.getElementById('generateBtn').addEventListener('click', generateSchedule);
+            document.getElementById('regenerateBtn').addEventListener('click', regenerateSchedule);
+            document.getElementById('downloadBtn').addEventListener('click', downloadExcel);
+            document.getElementById('addEmployeeBtn').addEventListener('click', addEmployee);
+            document.getElementById('addPreferenceBtn').addEventListener('click', addPreference);
+            document.getElementById('loadScheduleBtn').addEventListener('click', loadSavedSchedules);
+            document.getElementById('deleteMonthBtn').addEventListener('click', deleteEntireMonth);
+            document.getElementById('supervisorSelect').addEventListener('change', updateSupervisor);
+            document.getElementById('newEmployeeName').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') addEmployee();
+            });
+
+            // Загружаем сотрудников из БД и автоматически загружаем график
+            loadEmployeesFromDatabase();
+            loadSavedSchedules();
+            
+            // Автозагрузка графика для текущего месяца
+            setTimeout(() => {
+                autoLoadCurrentSchedule();
+            }, 1000);
+        }
+
+        // Автозагрузка графика для выбранного месяца/года
+        async function autoLoadCurrentSchedule() {
+            console.log('🔄 Попытка автозагрузки графика...');
+            const year = parseInt(document.getElementById('year').value);
+            const month = parseInt(document.getElementById('month').value);
+            
+            try {
+                const response = await fetch(`/api/schedule/${year}/${month}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    console.log('✅ График найден в БД:', data);
+                    currentData = data;
+                    
+                    // Обновляем список сотрудников из загруженного графика
+                    console.log('📝 Обновляем сотрудников из графика:', data.employees);
+                    employees = data.employees;
+                    if (employees.length > 0) {
+                        supervisorName = employees[0]; // Первый в списке - руководитель
+                    }
+                    
+                    updateSupervisorSelect();
+                    updateEmployeeList();
+                    updatePreferencesEmployeeList();
+                    updateMonthDisplay(year, month);
+                    displayResults(data);
+                    
+                    document.getElementById('downloadBtn').classList.remove('hidden');
+                    document.getElementById('statisticsSection').classList.remove('hidden');
+                    document.getElementById('generateBtn').style.display = 'none';
+                    document.getElementById('regenerateBtn').style.display = 'inline-flex';
+                    document.getElementById('welcomeMessage').style.display = 'none';
+                    
+                    // Показываем информацию о версии
+                    displayVersionInfo(data);
+                    
+                    showView('calendar');
+                    showMessage(`График ${monthNames[month-1]} ${year} загружен (версия ${data.version || 1})`, 'success');
+                } else {
+                    console.log('❌ График не найден в БД');
+                }
+            } catch (error) {
+                // Если график не найден, показываем обычный интерфейс
+                console.log('📭 График не найден, показываем интерфейс генерации:', error.message);
+            }
+        }
+
+        // Функция перегенерации графика
+        async function regenerateSchedule() {
+            if (employees.length < 8) {
+                showMessage('Необходимо минимум 8 сотрудников для генерации графика', 'error');
+                return;
+            }
+
+            if (!supervisorName || !employees.includes(supervisorName)) {
+                showMessage('Необходимо выбрать руководителя из списка сотрудников', 'error');
+                return;
+            }
+
+            const year = parseInt(document.getElementById('year').value);
+            const month = parseInt(document.getElementById('month').value);
+
+            // Проверяем есть ли реальные изменения в пожеланиях
+            const preferencesData = {};
+            let hasPreferences = false;
+            
+            console.log('🔍 Начинаем формирование пожеланий...');
+            console.log('📊 employeePreferences:', employeePreferences);
+            
+            employeePreferences.forEach((empPrefs, employee) => {
+                console.log(`👤 Обрабатываем сотрудника: ${employee}`);
+                console.log(`📋 Его пожелания:`, empPrefs);
+                
+                preferencesData[employee] = {};
+                
+                empPrefs.forEach((pref, key) => {
+                    console.log(`🔑 Обрабатываем пожелание с ключом: ${key}`, pref);
+                    hasPreferences = true;
+                    const startDate = new Date(pref.startDate);
+                    const endDate = new Date(pref.endDate);
+                    
+                    console.log(`📅 Период: ${pref.startDate} - ${pref.endDate}`);
+                    console.log(`🔧 Тип: ${pref.type}`);
+                    
+                    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                        const dateKey = d.toISOString().split('T')[0];
+                        preferencesData[employee][dateKey] = {
+                            type: pref.type,
+                            reason: pref.reasonText || pref.reason
+                        };
+                        console.log(`📆 Добавлена дата: ${dateKey} для ${employee}, тип: ${pref.type}`);
+                    }
+                });
+            });
+
+            console.log('✅ Итоговые пожелания для отправки:', JSON.stringify(preferencesData, null, 2));
+            console.log('📊 Есть пожелания:', hasPreferences);
+
+            // Если нет изменений в пожеланиях, спрашиваем подтверждение
+            if (!hasPreferences && currentData) {
+                if (!confirm('Пожелания сотрудников не изменились. Вы уверены, что хотите полностью перегенерировать график? Это может изменить расписание всех сотрудников.')) {
+                    return;
+                }
+            }
+
+            // Упорядочиваем сотрудников: руководитель первым
+            const orderedEmployees = [supervisorName, ...employees.filter(emp => emp !== supervisorName)];
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('changesSection').style.display = 'none';
+
+            try {
+                const requestBody = {
+                    year,
+                    month,
+                    customNames: orderedEmployees,
+                    preferences: preferencesData,
+                    regenerate: true // Флаг перегенерации
+                };
+                
+                console.log('📤 Отправляем запрос на сервер:', JSON.stringify(requestBody, null, 2));
+
+                const response = await fetch('/api/generate-schedule', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+
+                console.log('📥 Получен ответ от сервера:', data);
+
+                if (data.success) {
+                    currentData = data;
+                    currentFilename = data.filename;
+                    
+                    updateMonthDisplay(year, month);
+                    displayResults(data);
+                    displayVersionInfo(data);
+                    
+                    // Показываем изменения если есть
+                    console.log('🔍 Проверяем наличие изменений...');
+                    console.log('📊 data.changesDescription:', data.changesDescription);
+                    console.log('📊 data.minimalChanges:', data.minimalChanges);
+                    console.log('📊 data.isMinimalChange:', data.isMinimalChange);
+                    
+                    if (data.changesDescription) {
+                        console.log('📝 Найдены изменения для отображения:', data.changesDescription);
+                        displayChanges(data.changesDescription);
+                    } else if (data.minimalChanges && data.minimalChanges.length > 0) {
+                        console.log('📝 Найдены минимальные изменения, формируем описание...', data.minimalChanges);
+                        // Если по какой-то причине описание не сформировалось на сервере
+                        const formatMinimalChanges = (changes) => {
+                            const employeeChanges = {};
+                            changes.forEach(change => {
+                                if (!employeeChanges[change.employee]) {
+                                    employeeChanges[change.employee] = [];
+                                }
+                                const date = new Date(change.date).toLocaleDateString('ru-RU');
+                                const oldShiftText = change.oldShift.type === 'OFF' ? 'Выходной' : 
+                                                   `${change.oldShift.start || ''}-${change.oldShift.end || ''}${change.oldShift.hours ? ` (${change.oldShift.hours}ч)` : ''}`;
+                                const newShiftText = change.newShift.type === 'OFF' ? 'Выходной' : 
+                                                   change.newShift.type === 'vacation' ? 'Отпуск' :
+                                                   `${change.newShift.start || ''}-${change.newShift.end || ''}${change.newShift.hours ? ` (${change.newShift.hours}ч)` : ''}`;
+                                
+                                employeeChanges[change.employee].push({
+                                    date,
+                                    oldShift: oldShiftText,
+                                    newShift: newShiftText,
+                                    reason: change.reason
+                                });
+                            });
+                            return employeeChanges;
+                        };
+                        
+                        const changesDescription = formatMinimalChanges(data.minimalChanges);
+                        displayChanges(changesDescription);
+                    } else {
+                        console.log('❌ Нет изменений для отображения');
+                        // Скрываем секцию изменений
+                        document.getElementById('changesSection').style.display = 'none';
+                    }
+                    
+                    showMessage(`График перегенерирован! Создана версия ${data.version}`, 'success');
+                    document.getElementById('downloadBtn').classList.remove('hidden');
+                    
+                    // Обновляем список сохраненных графиков
+                    await loadSavedSchedules();
+                    
+                    showView('calendar');
+                } else {
+                    throw new Error(data.error || 'Ошибка перегенерации графика');
+                }
+            } catch (error) {
+                showMessage(`Ошибка: ${error.message}`, 'error');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // Отображение информации о версии
+        function displayVersionInfo(data) {
+            const versionInfo = document.getElementById('versionInfo');
+            const currentVersion = document.getElementById('currentVersion');
+            const versionDetails = document.getElementById('versionDetails');
+            const versionsSection = document.getElementById('versionsSection');
+            
+            if (data.version) {
+                currentVersion.textContent = `v${data.version}`;
+                
+                let detailsText = '';
+                if (data.parentVersion) {
+                    detailsText = `(обновлено с v${data.parentVersion})`;
+                } else {
+                    detailsText = '(первая версия)';
+                }
+                
+                versionDetails.textContent = detailsText;
+                versionInfo.style.display = 'flex';
+                versionsSection.style.display = 'block';
+                
+                // Загружаем список версий
+                loadVersionsList(data.year, data.month, data.version);
+            } else {
+                versionInfo.style.display = 'none';
+                versionsSection.style.display = 'none';
+            }
+        }
+
+        // Загрузка списка версий
+        async function loadVersionsList(year, month, currentVersion) {
+            try {
+                const response = await fetch(`/api/schedule-versions/${year}/${month}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayVersionsList(data.versions, currentVersion);
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки версий:', error);
+            }
+        }
+
+        // Отображение списка версий
+        function displayVersionsList(versions, currentVersion) {
+            const versionsList = document.getElementById('versionsList');
+            versionsList.innerHTML = '';
+            
+            if (versions.length === 0) {
+                versionsList.innerHTML = '<p style="color: var(--text-muted); font-size: 11px; text-align: center; padding: 8px;">Нет версий</p>';
+                return;
+            }
+            
+            versions.forEach(version => {
+                const item = document.createElement('div');
+                item.className = `version-item ${version.version === currentVersion ? 'current' : ''}`;
+                
+                const dateStr = new Date(version.createdAt).toLocaleDateString('ru-RU', {
+                    day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+                });
+                
+                item.innerHTML = `
+                    <div class="version-info">
+                        <div class="version-number">Версия ${version.version}</div>
+                        <div class="version-date">${dateStr}</div>
+                    </div>
+                    <div class="version-actions">
+                        ${version.version !== currentVersion ? 
+                            `<button class="version-btn load" onclick="loadVersion(${version.id})" title="Загрузить">📥</button>` : 
+                            '<span style="color: var(--success-color); font-size: 10px;">Текущая</span>'
+                        }
+                        ${!(versions.length === 1 && version.version === 1) ? 
+                            `<button class="version-btn delete" onclick="deleteVersion(${version.id}, ${version.version})" title="Удалить">🗑️</button>` : 
+                            ''
+                        }
+                    </div>
+                `;
+                versionsList.appendChild(item);
+            });
+        }
+
+        // Переключение видимости списка версий
+        function toggleVersionsList() {
+            const versionsList = document.getElementById('versionsList');
+            const showBtn = document.getElementById('showVersionsBtn');
+            
+            if (versionsList.style.display === 'none' || !versionsList.style.display) {
+                versionsList.style.display = 'block';
+                showBtn.textContent = '📚 Скрыть версии';
+            } else {
+                versionsList.style.display = 'none';
+                showBtn.textContent = '📚 Управление версиями';
+            }
+        }
+
+        // Загрузка конкретной версии
+        async function loadVersion(scheduleId) {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                
+                const response = await fetch(`/api/schedule/id/${scheduleId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentData = data;
+                    
+                    // Обновляем форму
+                    document.getElementById('year').value = data.year;
+                    document.getElementById('month').value = data.month;
+                    
+                    // Обновляем список сотрудников из загруженного графика
+                    employees = data.employees;
+                    if (employees.length > 0) {
+                        supervisorName = employees[0];
+                    }
+                    
+                    updateSupervisorSelect();
+                    updateEmployeeList();
+                    updatePreferencesEmployeeList();
+                    updateMonthDisplay(data.year, data.month);
+                    displayResults(data);
+                    displayVersionInfo(data);
+                    
+                    document.getElementById('downloadBtn').classList.remove('hidden');
+                    document.getElementById('statisticsSection').classList.remove('hidden');
+                    
+                    showView('calendar');
+                    showMessage(`Загружена версия ${data.version} графика`, 'success');
+                } else {
+                    showMessage('График не найден: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Ошибка загрузки версии: ' + error.message, 'error');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // Удаление версии графика
+        async function deleteVersion(scheduleId, version) {
+            if (!confirm(`Вы уверены, что хотите удалить версию ${version}? Это действие нельзя отменить.`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/schedule/${scheduleId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    
+                    // Перезагружаем список версий
+                    if (currentData) {
+                        loadVersionsList(currentData.year, currentData.month, currentData.version);
+                    }
+                } else {
+                    showMessage('Ошибка удаления: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Ошибка удаления версии: ' + error.message, 'error');
+            }
+        }
+
+        // Очистка всех версий графиков
+        // Функция удалена - используется точечное удаление версий
+
+        // Отображение изменений при перегенерации
+        function displayChanges(changesDescription) {
+            const changesSection = document.getElementById('changesSection');
+            const changesList = document.getElementById('changesList');
+            
+            changesList.innerHTML = '';
+            
+            let hasRealChanges = false;
+            
+            Object.entries(changesDescription).forEach(([employee, changes]) => {
+                changes.forEach(change => {
+                    // Фильтруем только реальные изменения (не "Выходной → Выходной")
+                    const isRealChange = change.oldShift !== change.newShift;
+                    
+                    if (isRealChange) {
+                        hasRealChanges = true;
+                        const changeItem = document.createElement('div');
+                        changeItem.className = 'change-item';
+                        
+                        // Цветовая кодировка по типу изменения
+                        let changeClass = '';
+                        let changeIcon = '';
+                        
+                        if (change.newShift === 'Выходной') {
+                            changeClass = 'change-removed';
+                            changeIcon = '🔴';
+                        } else if (change.oldShift === 'Выходной') {
+                            changeClass = 'change-added';
+                            changeIcon = '🟢';
+                        } else {
+                            changeClass = 'change-modified';
+                            changeIcon = '🔄';
+                        }
+                        
+                        changeItem.className += ` ${changeClass}`;
+                        
+                        changeItem.innerHTML = `
+                            <div class="change-header">
+                                <span class="change-icon">${changeIcon}</span>
+                                <div class="change-employee">${employee}</div>
+                                <div class="change-date">${change.date}</div>
+                            </div>
+                            <div class="change-details">
+                                <span class="change-old">${change.oldShift}</span> 
+                                <span class="change-arrow">→</span> 
+                                <span class="change-new">${change.newShift}</span>
+                            </div>
+                            ${change.reason ? `<div class="change-reason">${change.reason}</div>` : ''}
+                        `;
+                        
+                        changesList.appendChild(changeItem);
+                    }
+                });
+            });
+            
+            if (hasRealChanges) {
+                changesSection.style.display = 'block';
+            } else {
+                changesSection.style.display = 'none';
+                console.log('📭 Нет реальных изменений для отображения');
+            }
+        }
+
+        // Функция для упорядочивания сотрудников: руководитель -> ночные дежурные -> остальные
+        function organizeEmployees(employees, scheduleData) {
+            if (!scheduleData) return employees;
+
+            const supervisor = employees.find(emp => emp === supervisorName);
+            const staff = employees.filter(emp => emp !== supervisorName);
+            
+            // Подсчитываем ночные дежурства для каждого сотрудника
+            const nightDutyCount = {};
+            staff.forEach(emp => {
+                nightDutyCount[emp] = 0;
+                Object.values(scheduleData[emp] || {}).forEach(shift => {
+                    if (shift.type === 'DUTY_HOME' || shift.type === 'MONDAY_DUTY_HOME') {
+                        nightDutyCount[emp]++;
+                    }
+                });
+            });
+
+            // Сортируем: больше ночных дежурств = выше
+            const sortedStaff = staff.sort((a, b) => {
+                const dutyDiff = nightDutyCount[b] - nightDutyCount[a];
+                if (dutyDiff !== 0) return dutyDiff;
+                return a.localeCompare(b); // По алфавиту если равное количество
+            });
+
+            return supervisor ? [supervisor, ...sortedStaff] : sortedStaff;
+        }
+
+        function updateSupervisor() {
+            const selectedSupervisor = document.getElementById('supervisorSelect').value;
+            if (selectedSupervisor) {
+                supervisorName = selectedSupervisor;
+                updateEmployeeList();
+                showMessage(`Руководитель установлен: ${supervisorName}`, 'success');
+            }
+        }
+
+        // Загрузка сотрудников из базы данных
+        async function loadEmployeesFromDatabase() {
+            console.log('🔄 Начинаем загрузку сотрудников из БД...');
+            try {
+                const response = await fetch('/api/employees');
+                const data = await response.json();
+                
+                console.log('📊 Ответ от API:', data);
+                
+                if (data.success && data.employees.length > 0) {
+                    employees = data.employees;
+                    employeeDetails = data.employeeDetails || []; // Сохраняем подробную информацию
+                    
+                    // Первый в списке - руководитель
+                    supervisorName = employees[0];
+                    console.log('👑 Руководитель установлен:', supervisorName);
+                    
+                    updateSupervisorSelect();
+                    updateEmployeeList();
+                    updatePreferencesEmployeeList();
+                    showMessage(`Загружено ${employees.length} сотрудников из базы данных`, 'success');
+                } else {
+                    // Если в БД нет сотрудников, предлагаем создать
+                    employees = [];
+                    employeeDetails = [];
+                    console.log('❌ В БД нет сотрудников');
+                    showMessage('В базе данных нет активных сотрудников. Добавьте сотрудников вручную.', 'error');
+                }
+            } catch (error) {
+                console.error('💥 Ошибка загрузки сотрудников:', error);
+                employees = [];
+                employeeDetails = [];
+                showMessage('Ошибка загрузки сотрудников из БД. Добавьте сотрудников вручную.', 'error');
+            }
+        }
+
+        function updateSupervisorSelect() {
+            const select = document.getElementById('supervisorSelect');
+            select.innerHTML = '<option value="">Выберите руководителя</option>';
+            
+            employees.forEach(emp => {
+                const option = document.createElement('option');
+                option.value = emp;
+                option.textContent = emp;
+                if (emp === supervisorName) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+        }
+
+        function addEmployee() {
+            const nameInput = document.getElementById('newEmployeeName');
+            const name = nameInput.value.trim();
+            
+            if (!name) return;
+            
+            if (employees.includes(name)) {
+                showMessage('Сотрудник с таким именем уже существует', 'error');
+                return;
+            }
+            
+            employees.push(name);
+            nameInput.value = '';
+            
+            // Если это первый сотрудник или нет выбранного руководителя, делаем его руководителем
+            if (employees.length === 1 || !supervisorName || !employees.includes(supervisorName)) {
+                supervisorName = name;
+            }
+            
+            updateSupervisorSelect();
+            updateEmployeeList();
+            updatePreferencesEmployeeList();
+        }
+
+        function removeEmployee(name) {
+            employees = employees.filter(emp => emp !== name);
+            // Удаляем пожелания для этого сотрудника
+            employeePreferences.delete(name);
+            
+            // Если удаляем руководителя, назначаем нового
+            if (name === supervisorName && employees.length > 0) {
+                supervisorName = employees[0];
+                updateSupervisorSelect();
+            }
+            
+            updateEmployeeList();
+            updatePreferencesEmployeeList();
+            updatePreferencesList();
+        }
+
+        function autoGenerateEmployees() {
+            const firstNames = ['Александр', 'Анна', 'Михаил', 'Елена', 'Дмитрий', 'Ольга', 'Сергей', 'Татьяна'];
+            const lastNames = ['Иванов', 'Петрова', 'Сидоров', 'Козлова', 'Смирнов', 'Новикова', 'Лебедев', 'Морозова'];
+            
+            employees = [];
+            employeePreferences.clear();
+            for (let i = 0; i < 8; i++) {
+                employees.push(`${firstNames[i]} ${lastNames[i]}`);
+            }
+            updateEmployeeList();
+            updatePreferencesEmployeeList();
+            updatePreferencesList();
+        }
+
+        function updateEmployeeList() {
+            const listElement = document.getElementById('employeeList');
+            listElement.innerHTML = '';
+            
+            // Правильный порядок: руководитель -> ночные дежурные -> остальные
+            let orderedEmployees;
+            
+            if (currentData && currentData.schedule) {
+                // Если есть данные графика, используем их для подсчета ночных смен
+                const supervisor = employees.find(emp => emp === supervisorName);
+                const staff = employees.filter(emp => emp !== supervisorName);
+                
+                // Подсчитываем ночные дежурства
+                const nightDutyCount = {};
+                staff.forEach(emp => {
+                    nightDutyCount[emp] = 0;
+                    Object.values(currentData.schedule[emp] || {}).forEach(shift => {
+                        if (shift.type === 'DUTY_HOME' || shift.type === 'MONDAY_DUTY_HOME') {
+                            nightDutyCount[emp]++;
+                        }
+                    });
+                });
+
+                // Сортируем по количеству ночных, затем по алфавиту
+                const sortedStaff = staff.sort((a, b) => {
+                    const dutyDiff = nightDutyCount[b] - nightDutyCount[a];
+                    if (dutyDiff !== 0) return dutyDiff;
+                    return a.localeCompare(b, 'ru');
+                });
+
+                orderedEmployees = supervisor ? [supervisor, ...sortedStaff] : sortedStaff;
+            } else {
+                // Если нет данных графика, просто руководитель первый, остальные по алфавиту
+                const supervisor = employees.find(emp => emp === supervisorName);
+                const staff = employees.filter(emp => emp !== supervisorName).sort((a, b) => a.localeCompare(b, 'ru'));
+                orderedEmployees = supervisor ? [supervisor, ...staff] : staff;
+            }
+            
+            orderedEmployees.forEach((name) => {
+                if (!name || !employees.includes(name)) return;
+                
+                const item = document.createElement('div');
+                item.className = 'employee-item';
+                const isSupervisor = name === supervisorName;
+                
+                // Ищем подробную информацию о сотруднике
+                const employeeDetail = employeeDetails.find(emp => emp.name === name);
+                const employmentDate = employeeDetail?.employmentDate ? 
+                    new Date(employeeDetail.employmentDate).toLocaleDateString('ru-RU') : 
+                    'Не указана';
+                const position = employeeDetail?.position === 'SUPERVISOR' ? 'Руководитель отдела' : 'Сотрудник СУРВ';
+                
+                item.innerHTML = `
+                    <div>
+                        <div class="employee-name">
+                            ${name}
+                            ${isSupervisor ? '<span class="employee-supervisor">РУКОВОДИТЕЛЬ</span>' : ''}
+                        </div>
+                        <div class="employee-role">${position}</div>
+                        <div class="employee-employment-date" style="font-size: 11px; color: var(--text-muted);">
+                            Дата начала работы: ${employmentDate}
+                        </div>
+                    </div>
+                    <button class="remove-button" onclick="removeEmployee('${name}')" title="Удалить">×</button>
+                `;
+                listElement.appendChild(item);
+            });
+        }
+
+        function updatePreferencesEmployeeList() {
+            const select = document.getElementById('prefEmployee');
+            select.innerHTML = '<option value="">Выберите сотрудника</option>';
+            
+            // Только сотрудники СУРВ (исключаем руководителя)
+            employees.filter(emp => emp !== supervisorName).forEach(emp => {
+                const option = document.createElement('option');
+                option.value = emp;
+                option.textContent = emp;
+                select.appendChild(option);
+            });
+        }
+
+        function addPreference() {
+            const employee = document.getElementById('prefEmployee').value;
+            const type = document.getElementById('prefType').value;
+            const startDate = document.getElementById('prefStartDate').value;
+            const endDate = document.getElementById('prefEndDate').value;
+            const reason = document.getElementById('prefReason').value;
+            
+            if (!employee || !type || !startDate || !endDate) {
+                showMessage('Заполните все обязательные поля для добавления пожелания', 'error');
+                return;
+            }
+
+            // Проверяем корректность диапазона дат
+            if (new Date(startDate) > new Date(endDate)) {
+                showMessage('Дата начала не может быть позже даты окончания', 'error');
+                return;
+            }
+            
+            if (!employeePreferences.has(employee)) {
+                employeePreferences.set(employee, new Map());
+            }
+            
+            const typeNames = {
+                'vacation': 'Отпуск',
+                'no_weekend': 'Не работать в выходные',
+                'remote_work': 'Удаленная работа'
+            };
+
+            // Создаем уникальный ключ для диапазона
+            const preferenceKey = `${startDate}_${endDate}_${type}`;
+            
+            employeePreferences.get(employee).set(preferenceKey, {
+                type: type,
+                startDate: startDate,
+                endDate: endDate,
+                reason: typeNames[type],
+                reasonText: reason || ''
+            });
+            
+            // Очищаем форму
+            document.getElementById('prefEmployee').value = '';
+            document.getElementById('prefType').value = 'vacation';
+            document.getElementById('prefStartDate').value = '';
+            document.getElementById('prefEndDate').value = '';
+            document.getElementById('prefReason').value = '';
+            
+            updatePreferencesList();
+            showMessage(`Пожелание добавлено для ${employee}`, 'success');
+        }
+
+        function removePreference(employee, key) {
+            if (employeePreferences.has(employee)) {
+                employeePreferences.get(employee).delete(key);
+                if (employeePreferences.get(employee).size === 0) {
+                    employeePreferences.delete(employee);
+                }
+            }
+            updatePreferencesList();
+        }
+
+        function updatePreferencesList() {
+            const listElement = document.getElementById('preferencesList');
+            listElement.innerHTML = '';
+            
+            let hasPreferences = false;
+            
+            employeePreferences.forEach((empPrefs, employee) => {
+                empPrefs.forEach((pref, key) => {
+                    hasPreferences = true;
+                    const item = document.createElement('div');
+                    item.className = 'preference-item';
+                    
+                    const startDate = new Date(pref.startDate).toLocaleDateString('ru-RU');
+                    const endDate = new Date(pref.endDate).toLocaleDateString('ru-RU');
+                    const dateRange = startDate === endDate ? startDate : `${startDate} — ${endDate}`;
+                    
+                    const typeClass = `preference-${pref.type.replace('_', '-')}`;
+                    
+                    item.innerHTML = `
+                        <div class="preference-content">
+                            <div class="preference-employee">${employee.split(' ')[0]} ${employee.split(' ')[1]}</div>
+                            <div class="preference-dates">${dateRange}</div>
+                            <span class="preference-type ${typeClass}">${pref.reason}</span>
+                            ${pref.reasonText ? `<div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">${pref.reasonText}</div>` : ''}
+                        </div>
+                        <button class="remove-button" onclick="removePreference('${employee}', '${key}')" title="Удалить">×</button>
+                    `;
+                    listElement.appendChild(item);
+                });
+            });
+            
+            if (!hasPreferences) {
+                listElement.innerHTML = '<p style="color: var(--text-muted); font-size: 12px; text-align: center; padding: 16px;">Пожелания не добавлены</p>';
+            }
+        }
+
+        // Функция для проверки попадания даты в диапазон пожеланий
+        function isDateInPreferenceRange(employee, date, preferenceType) {
+            if (!employeePreferences.has(employee)) return false;
+            
+            const empPrefs = employeePreferences.get(employee);
+            for (const [key, pref] of empPrefs) {
+                if (pref.type === preferenceType || !preferenceType) {
+                    const checkDate = new Date(date);
+                    const startDate = new Date(pref.startDate);
+                    const endDate = new Date(pref.endDate);
+                    
+                    if (checkDate >= startDate && checkDate <= endDate) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function showMessage(text, type = 'success') {
+            const messagesDiv = document.getElementById('messages');
+            const message = document.createElement('div');
+            message.className = `message message-${type}`;
+            message.textContent = text;
+            messagesDiv.innerHTML = '';
+            messagesDiv.appendChild(message);
+            
+            setTimeout(() => {
+                message.remove();
+            }, 5000);
+        }
+
+        function showView(viewName) {
+            // Обновляем табы
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(viewName + 'Tab').classList.add('active');
+            
+            // Показываем нужный контент
+            document.getElementById('calendarContainer').classList.add('hidden');
+            document.getElementById('tableContainer').classList.add('hidden');
+            document.getElementById(viewName + 'Container').classList.remove('hidden');
+            
+            if (viewName === 'calendar' && calendar) {
+                setTimeout(() => calendar.render(), 100);
+            }
+        }
+
+        function changeMonth(direction) {
+            if (!currentData) return;
+            
+            let year = parseInt(currentData.year);
+            let month = parseInt(currentData.month);
+            
+            month += direction;
+            if (month > 12) {
+                month = 1;
+                year++;
+            } else if (month < 1) {
+                month = 12;
+                year--;
+            }
+            
+            document.getElementById('year').value = year;
+            document.getElementById('month').value = month;
+            generateSchedule();
+        }
+
+        async function generateSchedule() {
+            if (employees.length < 8) {
+                showMessage('Необходимо минимум 8 сотрудников для генерации графика', 'error');
+                return;
+            }
+
+            if (!supervisorName || !employees.includes(supervisorName)) {
+                showMessage('Необходимо выбрать руководителя из списка сотрудников', 'error');
+                return;
+            }
+
+            const year = parseInt(document.getElementById('year').value);
+            const month = parseInt(document.getElementById('month').value);
+
+            // Упорядочиваем сотрудников: руководитель первым
+            const orderedEmployees = [supervisorName, ...employees.filter(emp => emp !== supervisorName)];
+
+            document.getElementById('loading').style.display = 'block';
+
+            try {
+                // Преобразуем пожелания в формат для сервера
+                const preferencesData = {};
+                employeePreferences.forEach((empPrefs, employee) => {
+                    preferencesData[employee] = {};
+                    
+                    empPrefs.forEach((pref, key) => {
+                        const startDate = new Date(pref.startDate);
+                        const endDate = new Date(pref.endDate);
+                        
+                        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                            const dateKey = d.toISOString().split('T')[0];
+                            preferencesData[employee][dateKey] = {
+                                type: pref.type,
+                                reason: pref.reasonText || pref.reason
+                            };
+                        }
+                    });
+                });
+
+                const response = await fetch('/api/generate-schedule', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        year,
+                        month,
+                        customNames: orderedEmployees,
+                        preferences: preferencesData,
+                        regenerate: false // Обычная генерация
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentData = data;
+                    currentFilename = data.filename;
+                    
+                    updateMonthDisplay(year, month);
+                    displayResults(data);
+                    
+                    showMessage('График успешно сгенерирован!');
+                    document.getElementById('downloadBtn').classList.remove('hidden');
+                    document.getElementById('statisticsSection').classList.remove('hidden');
+                    
+                    // Обновляем список сохраненных графиков
+                    await loadSavedSchedules();
+                    
+                    showView('calendar');
+                } else {
+                    throw new Error(data.error || 'Ошибка генерации графика');
+                }
+            } catch (error) {
+                showMessage(`Ошибка: ${error.message}`, 'error');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function updateMonthDisplay(year, month) {
+            document.getElementById('currentMonth').textContent = `${monthNames[month - 1]} ${year}`;
+        }
+
+        function displayResults(data) {
+            const { schedule, employeeHours, targetHours, employees, detailedStats } = data;
+
+            // Обновляем статистику
+            displayStatistics(data);
+            
+            // Создаем календарь
+            renderCalendar(data);
+            
+            // Создаем таблицу
+            renderTable(data);
+        }
+
+        function displayStatistics(data) {
+            const { schedule, employeeHours, targetHours, employees, detailedStats } = data;
+            
+            document.getElementById('targetHours').textContent = targetHours + 'ч';
+            document.getElementById('totalEmployees').textContent = employees.length;
+            
+            // Правильный порядок: руководитель -> больше ночных -> меньше ночных -> остальные по алфавиту
+            const supervisor = employees.find(emp => emp === supervisorName);
+            const staff = employees.filter(emp => emp !== supervisorName);
+            
+            // Подсчитываем ночные дежурства для каждого сотрудника
+            const nightDutyCount = {};
+            staff.forEach(emp => {
+                nightDutyCount[emp] = 0;
+                Object.values(schedule[emp] || {}).forEach(shift => {
+                    if (shift.type === 'DUTY_HOME' || shift.type === 'MONDAY_DUTY_HOME') {
+                        nightDutyCount[emp]++;
+                    }
+                });
+            });
+
+            // Сортируем: больше ночных дежурств = выше, затем по алфавиту
+            const sortedStaff = staff.sort((a, b) => {
+                const dutyDiff = nightDutyCount[b] - nightDutyCount[a];
+                if (dutyDiff !== 0) return dutyDiff;
+                return a.localeCompare(b, 'ru');
+            });
+
+            const orderedEmployees = supervisor ? [supervisor, ...sortedStaff] : sortedStaff;
+            
+            // Статистика по сотрудникам
+            const employeeStatsHtml = orderedEmployees.map((emp) => {
+                const totalHours = employeeHours[emp] || 0;
+                const isSupervisor = emp === supervisorName;
+                
+                if (isSupervisor) {
+                    // Руководитель - только часы
+                    const workDays = Object.values(schedule[emp] || {}).filter(shift => shift.type !== 'OFF').length;
+                    const offDays = Object.values(schedule[emp] || {}).filter(shift => shift.type === 'OFF').length;
+                    
+                    return `
+                        <div class="employee-stat">
+                            <div class="employee-stat-name">${emp} <span class="employee-supervisor">РУКОВОДИТЕЛЬ</span></div>
+                            <div class="employee-stat-hours">
+                                <div class="hours-total">${totalHours}ч</div>
+                                <div class="hours-details">Раб: ${workDays} | Вых: ${offDays} | Ночн: 0</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Сотрудники СУРВ - полная статистика
+                    const stats = detailedStats[emp] || {};
+                    const nightShifts = nightDutyCount[emp] || 0;
+                    
+                    return `
+                        <div class="employee-stat">
+                            <div class="employee-stat-name">${emp}</div>
+                            <div class="employee-stat-hours">
+                                <div class="hours-total">${totalHours}ч</div>
+                                <div class="detailed-stats">
+                                    <div class="stat-grid-detailed">
+                                        <div class="stat-mini">
+                                            <div class="stat-mini-value">${stats.workDays || 0}</div>
+                                            <div class="stat-mini-label">Раб. дн.</div>
+                                        </div>
+                                        <div class="stat-mini">
+                                            <div class="stat-mini-value">${stats.offDays || 0}</div>
+                                            <div class="stat-mini-label">Выходных</div>
+                                        </div>
+                                        <div class="stat-mini">
+                                            <div class="stat-mini-value">${nightShifts}</div>
+                                            <div class="stat-mini-label">Ночных</div>
+                                        </div>
+                                        <div class="stat-mini">
+                                            <div class="stat-mini-value">${stats.weekendShifts || 0}</div>
+                                            <div class="stat-mini-label">Выходн. см.</div>
+                                        </div>
+                                        <div class="stat-mini">
+                                            <div class="stat-mini-value">${stats.maxConsecutiveWork || 0}</div>
+                                            <div class="stat-mini-label">Макс. подряд</div>
+                                        </div>
+                                        <div class="stat-mini">
+                                            <div class="stat-mini-value">${stats.vacationDays || 0}</div>
+                                            <div class="stat-mini-label">Отпуск</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }).join('');
+            
+            document.getElementById('employeeStats').innerHTML = employeeStatsHtml;
+        }
+
+        function renderCalendar(data) {
+            const { schedule, employees } = data;
+            
+            if (calendar && typeof calendar.destroy === 'function') {
+                calendar.destroy();
+            }
+            
+            const events = [];
+            const shiftColors = {
+                'DAY': '#10b981',
+                'MONDAY_HOME': '#8b5cf6',
+                'MONDAY_DUTY_HOME': '#06b6d4',
+                'DUTY_HOME': '#a855f7',
+                'FRIDAY': '#059669',
+                'WEEKEND': '#f59e0b',
+                'PRE_HOLIDAY': '#fbbf24',
+                'SUPERVISOR_DAY': '#374151',
+                'SUPERVISOR_FRIDAY': '#374151',
+                'SUPERVISOR_PRE_HOLIDAY': '#fbbf24',
+                'vacation': '#ef4444'
+            };
+            
+            // Определяем приоритет отображения событий
+            const getEventPriority = (shift, emp) => {
+                // Руководитель - самый высокий приоритет (1)
+                if (emp === supervisorName) return 1;
+                
+                // Ночные смены - высокий приоритет (2)
+                if (shift.type === 'DUTY_HOME' || shift.type === 'MONDAY_DUTY_HOME') return 2;
+                
+                // Нестандартные смены - средний приоритет (3)
+                if (shift.type === 'MONDAY_HOME' || shift.type === 'WEEKEND' || shift.type === 'vacation') return 3;
+                
+                // Остальные смены - низкий приоритет (4)
+                return 4;
+            };
+            
+            // Собираем все события с приоритетами
+            const allEvents = [];
+            Object.keys(schedule).forEach(emp => {
+                Object.entries(schedule[emp]).forEach(([date, shift]) => {
+                    if (shift.type !== 'OFF') {
+                        let title = '';
+                        
+                        if (shift.type === 'vacation') {
+                            title = `${emp.split(' ')[0]} | ОТПУСК`;
+                        } else {
+                            const locationText = shift.location === 'дом' ? ' (дом)' : '';
+                            title = `${emp.split(' ')[0]} | ${shift.start}-${shift.end}${locationText}`;
+                        }
+                        
+                        allEvents.push({
+                            title: title,
+                            start: date,
+                            backgroundColor: shiftColors[shift.type] || '#6b7280',
+                            borderColor: shiftColors[shift.type] || '#6b7280',
+                            textColor: 'white',
+                            priority: getEventPriority(shift, emp),
+                            employee: emp,
+                            shiftType: shift.type
+                        });
+                    }
+                });
+            });
+            
+            // Сортируем события по дате, затем по приоритету, затем по имени сотрудника
+            allEvents.sort((a, b) => {
+                // Сначала по дате
+                const dateCompare = a.start.localeCompare(b.start);
+                if (dateCompare !== 0) return dateCompare;
+                
+                // Затем по приоритету (меньше = выше приоритет)
+                const priorityCompare = a.priority - b.priority;
+                if (priorityCompare !== 0) return priorityCompare;
+                
+                // Затем по имени сотрудника
+                return a.employee.localeCompare(b.employee, 'ru');
+            });
+
+            calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+                initialView: 'dayGridMonth',
+                locale: 'ru',
+                firstDay: 1, // Начинаем с понедельника
+                initialDate: `${data.year}-${String(data.month).padStart(2, '0')}-01`,
+                height: 'auto',
+                events: allEvents,
+                headerToolbar: false,
+                dayMaxEvents: 6, // Увеличиваем количество отображаемых событий
+                eventDisplay: 'block',
+                eventTextColor: 'white',
+                eventOrder: 'priority,employee', // Порядок сортировки событий
+                didMount: function() {
+                    // Добавляем атрибуты для праздничных дней после рендера
+                    markSpecialDays(data.year, data.month);
+                }
+            });
+            
+            calendar.render();
+        }
+
+        // Функция для маркировки праздничных и предпраздничных дней
+        function markSpecialDays(year, month) {
+            const { holidays, preHolidays } = getSpecialDays(year, month);
+            
+            // Ждем полной загрузки календаря
+            setTimeout(() => {
+                // Отмечаем праздники
+                Object.keys(holidays).forEach(dateStr => {
+                    const [y, m, d] = dateStr.split('-');
+                    
+                    // Ищем ячейку дня в календаре через разные возможные селекторы
+                    const daySelectors = [
+                        `[data-date="${dateStr}"]`,
+                        `.fc-day[data-date="${dateStr}"]`,
+                        `.fc-daygrid-day[data-date="${dateStr}"]`,
+                        `td[data-date="${dateStr}"]`
+                    ];
+                    
+                    let dayElement = null;
+                    for (const selector of daySelectors) {
+                        dayElement = document.querySelector(selector);
+                        if (dayElement) break;
+                    }
+                    
+                    if (dayElement) {
+                        dayElement.setAttribute('data-holiday', 'true');
+                        dayElement.title = holidays[dateStr];
+                        
+                        // Добавляем стили напрямую
+                        const dayNumber = dayElement.querySelector('.fc-daygrid-day-number');
+                        const dayFrame = dayElement.querySelector('.fc-daygrid-day-frame');
+                        
+                        if (dayNumber) {
+                            dayNumber.style.color = '#dc2626';
+                            dayNumber.style.fontWeight = '700';
+                            dayNumber.style.background = 'rgba(220, 38, 38, 0.1)';
+                            dayNumber.style.borderRadius = '4px';
+                            dayNumber.style.padding = '2px 4px';
+                        }
+                        
+                        if (dayFrame) {
+                            dayFrame.style.background = 'rgba(220, 38, 38, 0.08)';
+                        }
+                    }
+                });
+                
+                // Отмечаем предпраздничные дни
+                Object.keys(preHolidays).forEach(dateStr => {
+                    const [y, m, d] = dateStr.split('-');
+                    
+                    const daySelectors = [
+                        `[data-date="${dateStr}"]`,
+                        `.fc-day[data-date="${dateStr}"]`,
+                        `.fc-daygrid-day[data-date="${dateStr}"]`,
+                        `td[data-date="${dateStr}"]`
+                    ];
+                    
+                    let dayElement = null;
+                    for (const selector of daySelectors) {
+                        dayElement = document.querySelector(selector);
+                        if (dayElement) break;
+                    }
+                    
+                    if (dayElement) {
+                        dayElement.setAttribute('data-pre-holiday', 'true');
+                        dayElement.title = preHolidays[dateStr];
+                        
+                        const dayNumber = dayElement.querySelector('.fc-daygrid-day-number');
+                        const dayFrame = dayElement.querySelector('.fc-daygrid-day-frame');
+                        
+                        if (dayNumber) {
+                            dayNumber.style.color = '#d97706';
+                            dayNumber.style.fontWeight = '700';
+                            dayNumber.style.background = 'rgba(217, 119, 6, 0.1)';
+                            dayNumber.style.borderRadius = '4px';
+                            dayNumber.style.padding = '2px 4px';
+                        }
+                        
+                        if (dayFrame) {
+                            dayFrame.style.background = 'rgba(217, 119, 6, 0.05)';
+                        }
+                    }
+                });
+            }, 100);
+        }
+
+        // Универсальная функция для определения праздников и предпраздничных дней
+        function getSpecialDays(year, month) {
+            const holidays = {};
+            const preHolidays = {};
+            
+            // Праздничные дни 2025 года (синхронизировано с сервером)
+            if (year === 2025) {
+                const allHolidays = {
+                    '2025-01-01': 'Новый год',
+                    '2025-01-02': 'Новогодние каникулы',
+                    '2025-01-03': 'Новогодние каникулы',
+                    '2025-01-04': 'Новогодние каникулы',
+                    '2025-01-05': 'Новогодние каникулы',
+                    '2025-01-06': 'Новогодние каникулы',
+                    '2025-01-07': 'Рождество Христово',
+                    '2025-01-08': 'Новогодние каникулы',
+                    '2025-02-23': 'День защитника Отечества',
+                    '2025-03-08': 'Международный женский день',
+                    '2025-05-01': 'Праздник Весны и Труда',
+                    '2025-05-02': 'Праздник Весны и Труда (перенос)',
+                    '2025-05-09': 'День Победы',
+                    '2025-06-12': 'День России',
+                    '2025-06-13': 'День России (перенос)',
+                    '2025-11-04': 'День народного единства',
+                    '2025-12-31': 'Новый год (предпраздничный день)'
+                };
+                
+                const allPreHolidays = {
+                    '2025-02-22': 'Предпраздничный день',
+                    '2025-03-07': 'Предпраздничный день',
+                    '2025-04-30': 'Предпраздничный день',
+                    '2025-05-08': 'Предпраздничный день',
+                    '2025-06-11': 'Предпраздничный день',
+                    '2025-11-03': 'Предпраздничный день',
+                    '2025-12-30': 'Предпраздничный день'
+                };
+                
+                // Фильтруем по месяцу
+                Object.keys(allHolidays).forEach(date => {
+                    const dateMonth = parseInt(date.split('-')[1]);
+                    if (dateMonth === month) {
+                        holidays[date] = allHolidays[date];
+                    }
+                });
+                
+                Object.keys(allPreHolidays).forEach(date => {
+                    const dateMonth = parseInt(date.split('-')[1]);
+                    if (dateMonth === month) {
+                        preHolidays[date] = allPreHolidays[date];
+                    }
+                });
+            }
+            
+            return { holidays, preHolidays };
+        }
+
+        function renderTable(data) {
+            const { schedule, employees } = data;
+            const daysInMonth = new Date(parseInt(data.year), parseInt(data.month), 0).getDate();
+            const weekdays = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
+            
+            // Получаем праздники и предпраздничные дни для текущего месяца
+            const { holidays, preHolidays } = getSpecialDays(parseInt(data.year), parseInt(data.month));
+
+            // Правильный порядок сотрудников: руководитель -> ночные дежурные -> остальные
+            const supervisor = employees.find(emp => emp === supervisorName);
+            const staff = employees.filter(emp => emp !== supervisorName);
+            
+            // Подсчитываем ночные дежурства для каждого сотрудника
+            const nightDutyCount = {};
+            staff.forEach(emp => {
+                nightDutyCount[emp] = 0;
+                Object.values(schedule[emp] || {}).forEach(shift => {
+                    if (shift.type === 'DUTY_HOME' || shift.type === 'MONDAY_DUTY_HOME') {
+                        nightDutyCount[emp]++;
+                    }
+                });
+            });
+
+            // Сортируем: больше ночных дежурств = выше, затем по алфавиту
+            const sortedStaff = staff.sort((a, b) => {
+                const dutyDiff = nightDutyCount[b] - nightDutyCount[a];
+                if (dutyDiff !== 0) return dutyDiff;
+                return a.localeCompare(b, 'ru');
+            });
+
+            const orderedEmployees = supervisor ? [supervisor, ...sortedStaff] : sortedStaff;
+
+            let tableHtml = `
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" style="vertical-align: middle;">Сотрудник</th>
+            `;
+
+            // Заголовки дат
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(parseInt(data.year), parseInt(data.month) - 1, day);
+                const dateStr = `${data.year}-${String(data.month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayOfWeek = weekdays[date.getDay()];
+                const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                const isHoliday = holidays[dateStr];
+                const isPreHoliday = preHolidays[dateStr];
+                
+                let bgColor = '';
+                if (isHoliday) {
+                    bgColor = 'background: rgb(220 38 38 / 0.1);'; // Красный для праздников
+                } else if (isPreHoliday) {
+                    bgColor = 'background: rgb(251 191 36 / 0.1);'; // Желтый для предпраздничных
+                } else if (isWeekend) {
+                    bgColor = 'background: rgb(220 38 38 / 0.05);'; // Светло-красный для выходных
+                }
+                
+                tableHtml += `<th style="min-width: 80px; ${bgColor}" title="${isHoliday || isPreHoliday || ''}">${String(day).padStart(2, '0')}</th>`;
+            }
+            
+            tableHtml += `</tr><tr>`;
+            
+            // Заголовки дней недели
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(parseInt(data.year), parseInt(data.month) - 1, day);
+                const dateStr = `${data.year}-${String(data.month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayOfWeek = weekdays[date.getDay()];
+                const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                const isHoliday = holidays[dateStr];
+                const isPreHoliday = preHolidays[dateStr];
+                
+                let bgColor = '';
+                let textColor = '';
+                if (isHoliday) {
+                    bgColor = 'background: rgb(220 38 38 / 0.1);';
+                    textColor = 'color: #dc2626; font-weight: 600;';
+                } else if (isPreHoliday) {
+                    bgColor = 'background: rgb(251 191 36 / 0.1);';
+                    textColor = 'color: #d97706; font-weight: 600;';
+                } else if (isWeekend) {
+                    bgColor = 'background: rgb(220 38 38 / 0.05);';
+                    textColor = 'color: #dc2626;';
+                }
+                
+                tableHtml += `<th style="font-size: 11px; ${bgColor} ${textColor}">${dayOfWeek}</th>`;
+            }
+            
+            tableHtml += `</tr></thead><tbody>`;
+
+            // Строки сотрудников
+            orderedEmployees.forEach((emp) => {
+                tableHtml += `<tr>`;
+                
+                // Имя сотрудника
+                const isSupervisor = emp === supervisorName;
+                const role = isSupervisor ? ' <span class="employee-supervisor">РУКОВОДИТЕЛЬ</span>' : '';
+                tableHtml += `<td style="font-weight: 600; position: sticky; left: 0; background: var(--surface-color); border-right: 2px solid var(--border-color);">
+                    ${emp}${role}
+                </td>`;
+
+                // Смены по дням
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dateStr = `${data.year}-${String(data.month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    const shift = schedule[emp][dateStr];
+                    const date = new Date(parseInt(data.year), parseInt(data.month) - 1, day);
+                    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                    const isHoliday = holidays[dateStr];
+                    const isPreHoliday = preHolidays[dateStr];
+                    
+                    let cellContent = '';
+                    let cellClass = '';
+                    let bgColor = '';
+
+                    if (shift) {
+                        if (shift.type === 'OFF') {
+                            cellContent = '—';
+                            cellClass = 'shift-off';
+                        } else if (shift.type === 'vacation') {
+                            cellContent = '<span class="vacation-badge">ОТПУСК</span>';
+                            cellClass = 'shift-vacation';
+                        } else {
+                            const locationText = shift.location === 'дом' ? ' (дом)' : '';
+                            cellContent = `${shift.start}<br>${shift.end}${locationText}<br><small>${shift.hours}ч</small>`;
+                            cellClass = `shift-${shift.type.toLowerCase().replace('_', '-')}`;
+                        }
+                    }
+
+                    // Фоновый цвет для особых дней
+                    if (isHoliday) {
+                        bgColor = 'background: rgb(220 38 38 / 0.02);';
+                    } else if (isPreHoliday) {
+                        bgColor = 'background: rgb(251 191 36 / 0.02);';
+                    } else if (isWeekend) {
+                        bgColor = 'background: rgb(220 38 38 / 0.01);';
+                    }
+
+                    tableHtml += `<td class="${cellClass}" style="text-align: center; font-size: 11px; ${bgColor}">${cellContent}</td>`;
+                }
+
+                tableHtml += '</tr>';
+            });
+
+            tableHtml += '</tbody></table>';
+            document.getElementById('scheduleTable').innerHTML = tableHtml;
+        }
+
+        async function downloadExcel() {
+            if (!currentFilename) {
+                showMessage('Сначала сгенерируйте график', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/download/${currentFilename}`);
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = currentFilename;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    showMessage('Файл Excel успешно скачан!');
+                } else {
+                    throw new Error('Ошибка загрузки файла');
+                }
+            } catch (error) {
+                showMessage(`Ошибка при скачивании: ${error.message}`, 'error');
+            }
+        }
+
+        // Функции сохранения и загрузки графиков
+        async function saveCurrentSchedule() {
+            if (!currentData) {
+                showMessage('Нет текущего графика для сохранения', 'error');
+                return;
+            }
+
+            try {
+                // График уже сохранен в БД при генерации, просто обновляем список
+                await loadSavedSchedules();
+                showMessage('График сохранен в базе данных', 'success');
+            } catch (error) {
+                showMessage('Ошибка сохранения графика: ' + error.message, 'error');
+            }
+        }
+
+        async function loadSavedSchedules() {
+            try {
+                const response = await fetch('/api/schedules');
+                const data = await response.json();
+                
+                if (data.success) {
+                    displaySavedSchedules(data.schedules);
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки сохраненных графиков:', error);
+            }
+        }
+
+        function displaySavedSchedules(schedules) {
+            const listElement = document.getElementById('savedSchedulesList');
+            listElement.innerHTML = '';
+            
+            if (schedules.length === 0) {
+                listElement.innerHTML = '<p style="color: var(--text-muted); font-size: 11px; text-align: center; padding: 8px;">Нет сохраненных графиков</p>';
+                return;
+            }
+            
+            schedules.slice(0, 5).forEach(schedule => {
+                const item = document.createElement('div');
+                item.className = 'saved-schedule-item';
+                item.onclick = () => loadScheduleById(schedule.year, schedule.month);
+                
+                const monthName = monthNames[schedule.month - 1];
+                const dateStr = new Date(schedule.createdAt).toLocaleDateString('ru-RU');
+                
+                item.innerHTML = `
+                    <div class="saved-schedule-info">
+                        <div class="saved-schedule-title">${monthName} ${schedule.year}</div>
+                        <div class="saved-schedule-date">Создан: ${dateStr}</div>
+                    </div>
+                `;
+                listElement.appendChild(item);
+            });
+        }
+
+        async function loadScheduleById(year, month) {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                
+                const response = await fetch(`/api/schedule/${year}/${month}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentData = data;
+                    
+                    // Обновляем форму
+                    document.getElementById('year').value = year;
+                    document.getElementById('month').value = month;
+                    
+                    // Обновляем список сотрудников из загруженного графика
+                    employees = data.employees;
+                    if (employees.length > 0) {
+                        supervisorName = employees[0]; // Первый в списке - руководитель
+                    }
+                    
+                    updateSupervisorSelect();
+                    updateEmployeeList();
+                    updatePreferencesEmployeeList();
+                    updateMonthDisplay(year, month);
+                    displayResults(data);
+                    
+                    document.getElementById('downloadBtn').classList.remove('hidden');
+                    document.getElementById('statisticsSection').classList.remove('hidden');
+                    
+                    showView('calendar');
+                    showMessage(`График ${monthNames[month-1]} ${year} загружен из базы данных`, 'success');
+                } else {
+                    showMessage('График не найден: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Ошибка загрузки графика: ' + error.message, 'error');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        async function deleteEntireMonth() {
+            if (!currentData) {
+                showMessage('Нет загруженного графика для удаления', 'error');
+                return;
+            }
+            
+            if (!confirm(`Вы уверены, что хотите удалить ВСЕ версии графика ${monthNames[currentData.month-1]} ${currentData.year}? Это действие нельзя отменить!`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/delete-month/${currentData.year}/${currentData.month}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    
+                    // Сбрасываем состояние интерфейса
+                    currentData = null;
+                    currentFilename = null;
+                    
+                    document.getElementById('downloadBtn').classList.add('hidden');
+                    document.getElementById('statisticsSection').classList.add('hidden');
+                    document.getElementById('generateBtn').style.display = 'inline-flex';
+                    document.getElementById('regenerateBtn').style.display = 'none';
+                    document.getElementById('welcomeMessage').style.display = 'block';
+                    document.getElementById('calendarContainer').classList.add('hidden');
+                    document.getElementById('tableContainer').classList.add('hidden');
+                    
+                    // Очищаем секции версионности
+                    document.getElementById('versionInfo').style.display = 'none';
+                    document.getElementById('changesSection').style.display = 'none';
+                    document.getElementById('versionsSection').style.display = 'none';
+                    
+                    // Обновляем список сохраненных графиков
+                    await loadSavedSchedules();
+                } else {
+                    showMessage('Ошибка удаления: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Ошибка удаления графика: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
